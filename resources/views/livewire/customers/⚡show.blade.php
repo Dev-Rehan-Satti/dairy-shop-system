@@ -12,6 +12,14 @@ new #[Layout('layouts::app')] class extends Component
     {
         $this->customer = $customer;
     }
+
+    public function with(): array
+    {
+        return [
+            'orders' => $this->customer->orders()->latest()->take(5)->get(),
+            'payments' => $this->customer->payments()->latest('payment_date')->latest('id')->take(5)->get(),
+        ];
+    }
 };
 ?>
 
@@ -98,12 +106,110 @@ new #[Layout('layouts::app')] class extends Component
         </x-ui.card>
 
         <div class="space-y-6 lg:col-span-2">
-            <x-ui.card title="Order History" subtitle="Orders placed by this customer.">
-                <x-ui.empty-state icon="clipboard" title="No orders yet" description="Order history will appear here once the orders module is in place." />
+            <x-ui.card title="Order History" subtitle="Daily requirement and orders for this customer.">
+                <x-slot:actions>
+                    @can('customer_orders.create')
+                        <a href="{{ route('customer-orders.create', ['customer_id' => $customer->id]) }}" wire:navigate class="btn btn-primary btn-sm">
+                            <x-ui.icon name="plus" class="size-4" />
+                            Add Order
+                        </a>
+                    @endcan
+                </x-slot:actions>
+
+                @if ($orders->isEmpty())
+                    <x-ui.empty-state icon="clipboard" title="No orders yet" description="Add a recurring or one-time order for this customer." />
+                @else
+                    <div class="overflow-x-auto">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Type</th>
+                                    <th>Morning</th>
+                                    <th>Evening</th>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($orders as $order)
+                                    <tr wire:key="order-{{ $order->id }}">
+                                        <td>
+                                            <x-ui.badge :color="$order->order_type === 'recurring' ? 'primary' : 'secondary'">
+                                                {{ $order->typeLabel() }}
+                                            </x-ui.badge>
+                                        </td>
+                                        <td class="text-base-content/70">{{ $order->morning_quantity > 0 ? number_format($order->morning_quantity, 2).' L' : '—' }}</td>
+                                        <td class="text-base-content/70">{{ $order->evening_quantity > 0 ? number_format($order->evening_quantity, 2).' L' : '—' }}</td>
+                                        <td class="text-base-content/70">{{ $order->order_type === 'recurring' ? 'Daily' : $order->order_date?->format('d M Y') }}</td>
+                                        <td>
+                                            <x-ui.badge :color="match ($order->status) {
+                                                'delivered' => 'success',
+                                                'cancelled' => 'neutral',
+                                                default => 'warning',
+                                            }">
+                                                {{ \App\Models\CustomerOrder::STATUSES[$order->status] ?? $order->status }}
+                                            </x-ui.badge>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="mt-4 text-right">
+                        <a href="{{ route('customer-orders.index') }}" wire:navigate class="text-sm font-medium text-primary hover:underline">View all orders</a>
+                    </div>
+                @endif
             </x-ui.card>
 
             <x-ui.card title="Payment History" subtitle="Payments received from this customer.">
-                <x-ui.empty-state icon="credit-card" title="No payments yet" description="Payment history will appear here once the payments module is in place." />
+                <x-slot:actions>
+                    @can('customer_payments.create')
+                        <a href="{{ route('customer-payments.create', ['customer_id' => $customer->id]) }}" wire:navigate class="btn btn-primary btn-sm">
+                            <x-ui.icon name="plus" class="size-4" />
+                            Record Payment
+                        </a>
+                    @endcan
+                </x-slot:actions>
+
+                @if ($payments->isEmpty())
+                    <x-ui.empty-state icon="credit-card" title="No payments yet" description="Record a payment received from this customer." />
+                @else
+                    <div class="overflow-x-auto">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Receipt #</th>
+                                    <th>Amount</th>
+                                    <th>Method</th>
+                                    <th>Date</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($payments as $payment)
+                                    <tr wire:key="payment-{{ $payment->id }}">
+                                        <td class="font-mono text-sm text-base-content/70">{{ $payment->receipt_number }}</td>
+                                        <td class="font-medium text-base-content">{{ number_format($payment->amount, 2) }}</td>
+                                        <td>
+                                            <x-ui.badge color="outline">{{ $payment->methodLabel() }}</x-ui.badge>
+                                        </td>
+                                        <td class="text-base-content/70">{{ $payment->payment_date->format('d M Y') }}</td>
+                                        <td class="text-right">
+                                            <a href="{{ route('customer-payments.receipt', $payment) }}" wire:navigate class="btn btn-ghost btn-sm btn-circle" title="View Receipt">
+                                                <x-ui.icon name="file-text" class="size-4" />
+                                            </a>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="mt-4 text-right">
+                        <a href="{{ route('customer-payments.index') }}" wire:navigate class="text-sm font-medium text-primary hover:underline">View all payments</a>
+                    </div>
+                @endif
             </x-ui.card>
         </div>
     </div>

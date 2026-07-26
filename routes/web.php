@@ -24,7 +24,6 @@ Route::middleware('auth')->group(function () {
     Route::livewire('/dashboard', 'dashboard')->name('dashboard');
 
     Route::livewire('/employees', 'employees')->name('employees.index');
-    Route::livewire('/suppliers', 'suppliers')->name('suppliers.index');
 
     Route::middleware('can:roles.view')->group(function () {
         Route::livewire('/roles', 'roles.index')->name('roles.index');
@@ -57,5 +56,45 @@ Route::middleware('auth')->group(function () {
     });
     Route::middleware('can:customers.view')->group(function () {
         Route::livewire('/customers/{customer}', 'customers.show')->name('customers.show');
+    });
+
+    Route::middleware('can:suppliers.view')->group(function () {
+        Route::livewire('/suppliers', 'suppliers.index')->name('suppliers.index');
+    });
+    Route::middleware('can:suppliers.create')->group(function () {
+        Route::livewire('/suppliers/create', 'suppliers.form')->name('suppliers.create');
+    });
+    Route::middleware('can:suppliers.edit')->group(function () {
+        Route::livewire('/suppliers/{supplier}/edit', 'suppliers.form')->name('suppliers.edit');
+    });
+    Route::middleware('can:suppliers.view')->group(function () {
+        Route::livewire('/suppliers/{supplier}', 'suppliers.show')->name('suppliers.show');
+    });
+
+    Route::middleware('can:milk_collections.view')->group(function () {
+        Route::livewire('/milk-collections', 'milk-collections.index')->name('milk-collections.index');
+    });
+
+    Route::middleware('can:customer_orders.view')->group(function () {
+        Route::livewire('/customer-orders', 'customer-orders.index')->name('customer-orders.index');
+    });
+    Route::middleware('can:customer_orders.create')->group(function () {
+        Route::livewire('/customer-orders/create', 'customer-orders.form')->name('customer-orders.create');
+    });
+    Route::middleware('can:customer_orders.edit')->group(function () {
+        Route::livewire('/customer-orders/{customerOrder}/edit', 'customer-orders.form')->name('customer-orders.edit');
+    });
+
+    Route::middleware('can:customer_payments.view')->group(function () {
+        Route::livewire('/customer-payments', 'customer-payments.index')->name('customer-payments.index');
+    });
+    Route::middleware('can:customer_payments.create')->group(function () {
+        Route::livewire('/customer-payments/create', 'customer-payments.form')->name('customer-payments.create');
+    });
+    Route::middleware('can:customer_payments.edit')->group(function () {
+        Route::livewire('/customer-payments/{customerPayment}/edit', 'customer-payments.form')->name('customer-payments.edit');
+    });
+    Route::middleware('can:customer_payments.view')->group(function () {
+        Route::livewire('/customer-payments/{customerPayment}/receipt', 'customer-payments.receipt')->name('customer-payments.receipt');
     });
 });

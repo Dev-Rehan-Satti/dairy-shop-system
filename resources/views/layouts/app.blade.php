@@ -22,7 +22,7 @@
 
             <aside
                 :class="{ 'translate-x-0': sidebarOpen, 'collapsed lg:w-20': collapsed, 'lg:w-64': !collapsed }"
-                class="fixed inset-y-0 left-0 z-50 flex w-64 -translate-x-full flex-col border-r border-base-200 bg-base-100 transition-all duration-200 lg:static lg:translate-x-0"
+                class="fixed inset-y-0 left-0 z-50 flex w-64 -translate-x-full flex-col border-r border-base-200 bg-base-100 transition-all duration-200 lg:static lg:translate-x-0 print:hidden"
             >
                 <div class="flex h-16 shrink-0 items-center justify-between px-4">
                     <a href="{{ route('dashboard') }}" class="flex min-w-0 items-center gap-2.5">
@@ -55,16 +55,35 @@
 
                     <x-ui.nav-section title="Profiles">
                         <x-ui.nav-link :href="route('employees.index')" icon="user">Employees</x-ui.nav-link>
-                        <x-ui.nav-link :href="route('suppliers.index')" icon="truck">Suppliers</x-ui.nav-link>
+                        @can('suppliers.view')
+                            <x-ui.nav-link :href="route('suppliers.index')" icon="truck">Suppliers</x-ui.nav-link>
+                        @endcan
                         @can('customers.view')
                             <x-ui.nav-link :href="route('customers.index')" icon="map-pin">Customers</x-ui.nav-link>
                         @endcan
                     </x-ui.nav-section>
+
+                    @canany(['milk_collections.view', 'customer_orders.view'])
+                        <x-ui.nav-section title="Operations">
+                            @can('milk_collections.view')
+                                <x-ui.nav-link :href="route('milk-collections.index')" icon="beaker">Milk Collection</x-ui.nav-link>
+                            @endcan
+                            @can('customer_orders.view')
+                                <x-ui.nav-link :href="route('customer-orders.index')" icon="clipboard">Customer Orders</x-ui.nav-link>
+                            @endcan
+                        </x-ui.nav-section>
+                    @endcanany
+
+                    @can('customer_payments.view')
+                        <x-ui.nav-section title="Finance">
+                            <x-ui.nav-link :href="route('customer-payments.index')" icon="credit-card">Customer Payments</x-ui.nav-link>
+                        </x-ui.nav-section>
+                    @endcan
                 </nav>
             </aside>
 
             <div class="flex min-w-0 flex-1 flex-col">
-                <header class="sticky top-0 z-30 flex h-16 shrink-0 items-center justify-between gap-4 border-b border-base-200 bg-base-100 px-4 sm:px-6">
+                <header class="sticky top-0 z-30 flex h-16 shrink-0 items-center justify-between gap-4 border-b border-base-200 bg-base-100 px-4 sm:px-6 print:hidden">
                     <button @click="sidebarOpen = true" class="btn btn-ghost btn-sm lg:hidden">
                         <x-ui.icon name="menu" class="size-5" />
                     </button>
@@ -112,7 +131,7 @@
                     {{ $slot }}
                 </main>
 
-                <footer class="border-t border-base-200 px-6 py-4 text-center text-sm text-base-content/50">
+                <footer class="border-t border-base-200 px-6 py-4 text-center text-sm text-base-content/50 print:hidden">
                     &copy; {{ date('Y') }} {{ config('app.name') }}. All rights reserved.
                 </footer>
             </div>
